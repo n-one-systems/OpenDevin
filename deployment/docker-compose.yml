@@ -5,33 +5,28 @@ services:
       context: ../
       dockerfile: deployment/backend-dockerfile
     networks:
-      internal_network:
-        aliases:
-          - backend-service
+    - internal_network
+    container_name: backend-service
+    expose:
+      - "3000"
     env_file:
       - ../.env
     # Note: Exposing ports is unnecessary here since communication is internal
-
   frontend-docker:
     build:
       context: ../
       dockerfile: deployment/frontend-dockerfile
+    depends_on:
+      - backend-docker
     ports:
       - "3001:3001"
     networks:
-      - internal_network
-      - default
-
-  bash-docker:
-    build:
-      context: ../
-      dockerfile: deployment/bash-dockerfile
-    networks:
-      - internal_network
-    # Note: No ports exposed as specified
+    - internal_network
+    - frontend
 
 networks:
   internal_network:
     internal: true
-
+  frontend:
+    driver: bridge
 

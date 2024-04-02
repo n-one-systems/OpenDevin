@@ -2,6 +2,8 @@ FROM node:21-alpine3.19
 RUN mkdir -p /home/node/app  && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 COPY --chown=node:node frontend ./
+COPY --chown=node:node deployment/frontend.env ./.env
 USER node
 RUN npm install
-CMD ["npm", "run", "start", "--", "--port", "3001"]
+EXPOSE 3001
+CMD ["npm","start", "--", "--port", "3001", "--host", "0.0.0.0"]
