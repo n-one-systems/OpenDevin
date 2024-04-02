@@ -1,0 +1,42 @@
+# using ubuntu LTS version
+FROM ubuntu:22.04 AS builder-image
+
+RUN apt-get update && apt-get install --no-install-recommends -y python3.11 python3.11-dev python3.11-venv python3-pip python3-wheel build-essential && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# create and activate virtual environment
+RUN python3.11 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# install requirements
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+FROM ubuntu:22.04 AS runner-image
+# install python and create user
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y python3.11 python3-venv && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    adduser --system --group python && \
+    mkdir -p /home/python/backend && \
+    chown -R python:python /home/python/backend
+COPY --from=builder-image /opt/venv /opt/venv
+USER python
+# activate virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+WORKDIR /home/python/backend
+# needs to be optimized
+COPY agenthub ./agenthub 
+COPY opendevin ./opendevin
+
+ENV LLM_EMBEDDING_MODEL=local
+ENV LLM_MODEL=gpt-4-0125-preview
+ENV WORKSPACE_DIR=/home/python/workspace/
+# Optional Variables just for documentation
+# ENV LLM_API_KEY
+# ENV LLM_BASE_URL
+# ENV SANDBOX_CONTAINER_IMAGE
+# ENV LLM_DEPLOYMENT_NAME
+# ENV LLM_API_VERSION
+CMD ["/bin/bash", "-c","printenv && uvicorn opendevin.server.listen:app --port 3000"]

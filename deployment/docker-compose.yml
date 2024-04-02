@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  backend-docker:
+    build:
+      context: ../
+      dockerfile: deployment/backend-dockerfile
+    networks:
+      internal_network:
+        aliases:
+          - backend-service
+    env_file:
+      - ../.env
+    # Note: Exposing ports is unnecessary here since communication is internal
+
+  frontend-docker:
+    build:
+      context: ../
+      dockerfile: deployment/frontend-dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - internal_network
+      - default
+
+  bash-docker:
+    build:
+      context: ../
+      dockerfile: deployment/bash-dockerfile
+    networks:
+      - internal_network
+    # Note: No ports exposed as specified
+
+networks:
+  internal_network:
+    internal: true
+
+
