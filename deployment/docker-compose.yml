@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  backend-docker:
+  backend-service:
     build:
       context: ../
       dockerfile: deployment/backend-dockerfile
@@ -12,17 +12,18 @@ services:
     env_file:
       - ../.env
     # Note: Exposing ports is unnecessary here since communication is internal
-  frontend-docker:
+  frontend-service:
     build:
       context: ../
       dockerfile: deployment/frontend-dockerfile
     depends_on:
-      - backend-docker
+      - backend-service
     ports:
       - "3001:3001"
     networks:
     - internal_network
     - frontend
+    container_name: frontend-service
 
 networks:
   internal_network:
